@@ -628,7 +628,7 @@ function renderTP() {
   const rowsH = filtered.map(t => {
     const inf = t.de ? getUserInfo(t.de) : null;
     if (t.id === editId) return `<tr class="tr-ed"><td style="color:rgba(255,255,255,.12);font-size:9px">${t.id}</td><td>${cInp(t.n,'n',t.id)}</td><td>${cInp(t.d,'d',t.id)}</td><td>${cInp(t.po,'po',t.id)}</td><td>${cSel(t.de,[''].concat(dn),'de',t.id)}</td><td>${cSel(t.pr,PRIOS,'pr',t.id)}</td><td>${cSel(t.st,STATS,'st',t.id)}</td><td>${cInp(t.dl,'dl',t.id)}</td><td>${cInp(t.dy,'dy',t.id)}</td><td>${cInp(t.tz,'tz',t.id)}</td><td>${cInp(t.file||'','file',t.id)}</td><td><button class="abt" onclick="stopEd()">&#x2713;</button>${isD?`<button class="abt del" onclick="delT(${t.id})">&#x2715;</button>`:''}</td></tr>`;
-    const tzH = t.tz ? `<span style="color:#D9017A;font-size:9px">&#x2197; ТЗ</span>` : '<span style="color:rgba(255,255,255,.12)">—</span>';
+    const tzH = t.tz ? `<a href="${t.tz}" target="_blank" style="color:#D9017A;font-size:9px;text-decoration:none;">&#x2197; ТЗ</a>` : '<span style="color:rgba(255,255,255,.12)">—</span>';
     const btns = `<button class="abt" onclick="startEd(${t.id})">&#x270E;</button>${isD?`<button class="abt del" onclick="delT(${t.id})">&#x2715;</button>`:''}`;
     return `<tr id="row-${t.id}" class="${t.carried?'tr-carried':''}" ondblclick="startEd(${t.id})">
       <td style="color:rgba(255,255,255,.12);font-size:9px">${t.id}</td>
