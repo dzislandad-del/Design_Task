@@ -296,6 +296,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
       <div class="mf"><label>Дедлайн</label><input id="f-dl" type="date" /></div>
       <div class="mf"><label>Количество дней</label><input id="f-dy" placeholder="0" /></div>
       <div class="mf mfull"><label>Ссылка на ТЗ / материалы</label><input id="f-tz" placeholder="https://..." /></div>
+      <div class="mf mfull"><label>Ссылка на готовый файл (Figma / Drive)</label><input id="f-file" placeholder="https://..." /></div>
     </div>
     <div class="mbtns"><button class="btn-out" onclick="closeM('taskModal')">Отмена</button><button class="btn-mg" onclick="saveTask()">Сохранить</button></div>
     <div class="ok-note" id="task-ok">&#x2713; Задача сохранена</div>
@@ -626,7 +627,7 @@ function renderTP() {
 
   const rowsH = filtered.map(t => {
     const inf = t.de ? getUserInfo(t.de) : null;
-    if (t.id === editId) return `<tr class="tr-ed"><td style="color:rgba(255,255,255,.12);font-size:9px">${t.id}</td><td>${cInp(t.n,'n',t.id)}</td><td>${cInp(t.d,'d',t.id)}</td><td>${cInp(t.po,'po',t.id)}</td><td>${cSel(t.de,[''].concat(dn),'de',t.id)}</td><td>${cSel(t.pr,PRIOS,'pr',t.id)}</td><td>${cSel(t.st,STATS,'st',t.id)}</td><td>${cInp(t.dl,'dl',t.id)}</td><td>${cInp(t.dy,'dy',t.id)}</td><td>${cInp(t.tz,'tz',t.id)}</td><td><button class="abt" onclick="stopEd()">&#x2713;</button>${isD?`<button class="abt del" onclick="delT(${t.id})">&#x2715;</button>`:''}</td></tr>`;
+    if (t.id === editId) return `<tr class="tr-ed"><td style="color:rgba(255,255,255,.12);font-size:9px">${t.id}</td><td>${cInp(t.n,'n',t.id)}</td><td>${cInp(t.d,'d',t.id)}</td><td>${cInp(t.po,'po',t.id)}</td><td>${cSel(t.de,[''].concat(dn),'de',t.id)}</td><td>${cSel(t.pr,PRIOS,'pr',t.id)}</td><td>${cSel(t.st,STATS,'st',t.id)}</td><td>${cInp(t.dl,'dl',t.id)}</td><td>${cInp(t.dy,'dy',t.id)}</td><td>${cInp(t.tz,'tz',t.id)}</td><td>${cInp(t.file||'','file',t.id)}</td><td><button class="abt" onclick="stopEd()">&#x2713;</button>${isD?`<button class="abt del" onclick="delT(${t.id})">&#x2715;</button>`:''}</td></tr>`;
     const tzH = t.tz ? `<span style="color:#D9017A;font-size:9px">&#x2197; ТЗ</span>` : '<span style="color:rgba(255,255,255,.12)">—</span>';
     const btns = `<button class="abt" onclick="startEd(${t.id})">&#x270E;</button>${isD?`<button class="abt del" onclick="delT(${t.id})">&#x2715;</button>`:''}`;
     return `<tr id="row-${t.id}" class="${t.carried?'tr-carried':''}" ondblclick="startEd(${t.id})">
@@ -638,7 +639,9 @@ function renderTP() {
       <td>${prioH(t.pr)}</td><td>${pill(t.st)}</td>
       <td style="font-size:10px;font-family:'Fira Code',monospace;color:rgba(255,255,255,.3);white-space:nowrap">${t.dl||'—'}</td>
       <td style="font-size:11px;font-family:'Fira Code',monospace;text-align:center;color:rgba(255,255,255,.5)">${t.dy||'—'}</td>
-      <td>${tzH}</td><td style="white-space:nowrap">${btns}</td>
+      <td>${tzH}</td>
+      <td>${t.file ? `<a href="${t.file}" target="_blank" style="color:#0075FF;font-size:9px;text-decoration:none;">&#x2197; Файл</a>` : '<span style="color:rgba(255,255,255,.12)">—</span>'}</td>
+      <td style="white-space:nowrap">${btns}</td>
     </tr>`;
   }).join('');
 
@@ -669,7 +672,7 @@ function renderTP() {
       <div class="slbl" style="align-self:flex-end">Показано: <span style="color:var(--tx);font-weight:400;letter-spacing:0;text-transform:none;font-size:11px">${filtered.length} из ${tot}</span></div>
     </div>
     <div class="tscroll"><table>
-      <thead><tr><th style="width:22px">#</th><th>Название / краткое описание задачи</th><th>Дата пост.</th><th>Постановщик</th><th>Дизайнер</th><th>Приоритет</th><th>Статус</th><th>Дедлайн</th><th>Кол-во дней</th><th>ТЗ</th><th style="width:50px"></th></tr></thead>
+      <thead><tr><th style="width:22px">#</th><th>Название / краткое описание задачи</th><th>Дата пост.</th><th>Постановщик</th><th>Дизайнер</th><th>Приоритет</th><th>Статус</th><th>Дедлайн</th><th>Кол-во дней</th><th>ТЗ</th><th>Файл</th><th style="width:50px"></th></tr></thead>
       <tbody>${rowsH || '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--tx3)">Нет задач по выбранным фильтрам</td></tr>'}</tbody>
     </table></div>`;
 
@@ -718,12 +721,12 @@ function openModal(id = null) {
   if (id !== null) {
     const t = getMo().tasks.find(x => x.id === id); if (!t) return;
     document.getElementById('mTitle').textContent = 'Редактировать задачу';
-    ['n','d','po','dl','dy','tz'].forEach(k => document.getElementById('f-'+k).value = t[k] || '');
+    ['n','d','po','dl','dy','tz','file'].forEach(k => document.getElementById('f-'+k).value = t[k] || '');
     ['de','pr'].forEach(k => document.getElementById('f-'+k).value = t[k] || '');
     document.getElementById('f-st').value = t.st || 'Backlog';
   } else {
     document.getElementById('mTitle').textContent = 'Новая задача';
-    ['f-n','f-d','f-dl','f-dy','f-tz'].forEach(i => document.getElementById(i).value = '');
+    ['f-n','f-d','f-dl','f-dy','f-tz','f-file'].forEach(i => document.getElementById(i).value = '');
     ['f-de','f-pr'].forEach(i => document.getElementById(i).value = '');
     document.getElementById('f-st').value = 'Backlog';
     document.getElementById('f-po').value = curUser ? curUser.name : '';
@@ -740,6 +743,7 @@ async function saveTask() {
     de: document.getElementById('f-de').value, pr: document.getElementById('f-pr').value,
     st: document.getElementById('f-st').value, dl: document.getElementById('f-dl').value,
     dy: document.getElementById('f-dy').value, tz: document.getElementById('f-tz').value,
+    file: document.getElementById('f-file').value,
     carried: false
   };
   const mo = months.find(x => x.key === curMo); if (!mo) return;
@@ -830,8 +834,8 @@ function renderHist() {
 // ═══ EXPORT ═══
 function exportCSV() {
   const tasks = getMo().tasks;
-  const hdr = ['Название','Дата постановки','Постановщик','Дизайнер','Приоритет','Статус','Дедлайн','Кол-во дней','Ссылка на ТЗ','Перенесено'];
-  const rows = tasks.map(t => [t.n,t.d,t.po,t.de,t.pr,t.st,t.dl,t.dy,t.tz,t.carried?'Да':''].map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
+  const hdr = ['Название','Дата постановки','Постановщик','Дизайнер','Приоритет','Статус','Дедлайн','Кол-во дней','Ссылка на ТЗ','Ссылка на файл','Перенесено'];
+  const rows = tasks.map(t => [t.n,t.d,t.po,t.de,t.pr,t.st,t.dl,t.dy,t.tz,t.file||'',t.carried?'Да':''].map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent([hdr.join(','), ...rows].join('\n'));
   a.download = 'bixbit_' + curMo + '.csv'; a.click();
